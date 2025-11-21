@@ -6,7 +6,7 @@ export interface User {
   role: Role;
 }
 
-export type TaskStatus = "Pending" | "Done" | "";
+export type TaskStatus = "Pending" | "Done";
 
 export interface Task {
   id: string;
@@ -15,6 +15,6 @@ export interface Task {
   status: TaskStatus;
   createdAt?: string;
   updatedAt?: string;
-  createdBy: string;
-  createdOn: string;
+  createdBy?: string;
+  createdOn?: string;
 }
