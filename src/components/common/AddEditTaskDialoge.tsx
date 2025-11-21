@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,25 +9,26 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-interface Task {
-  title: string;
-  description: string;
-  status: string;
-  createdOn: any;
-  createdBy: any;
-  userId: string;
-}
+import type { Task } from "@/types/types";
+
 interface CreatedBy {
   name: string;
   id: string;
 }
-
+interface TaskData {
+  title: string;
+  description: string;
+  status: "Pending" | "Done";
+  createdOn: string;
+  createdBy: string;
+  userId: string;
+}
 interface AddEditTaskDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   mode?: "add" | "edit";
-  defaultValues?: Task;
-  onSubmit: (data: Task) => void;
+  defaultValues: Task | null;
+  onSubmit: (data: TaskData) => void;
   createdBy: CreatedBy;
 }
 
@@ -39,25 +40,31 @@ const AddEditTaskDialog: React.FC<AddEditTaskDialogProps> = ({
   onSubmit,
   createdBy,
 }) => {
-  const [task, setTask] = useState<Task>({
-    title: "",
-    description: "",
-    status: "",
-    createdOn: "",
-    createdBy: "",
-    userId: "",
+  const [task, setTask] = useState<Task>(() => {
+    if (mode === "edit" && defaultValues) {
+      return { ...defaultValues };
+    }
+    return {
+      title: "",
+      description: "",
+      status: "Pending",
+      createdOn: new Date().toISOString(),
+      createdBy: "",
+      userId: "",
+    };
   });
 
   useEffect(() => {
     if (mode === "edit" && defaultValues) {
-      setTask(defaultValues);
+      setTask({ ...defaultValues });
     }
-  }, [mode, defaultValues]);
+  }, [defaultValues, open, mode]);
+
   const resetTask = () => {
     setTask({
       title: "",
       description: "",
-      status: "",
+      status: "Pending",
       createdOn: "",
       userId: "",
       createdBy: "",

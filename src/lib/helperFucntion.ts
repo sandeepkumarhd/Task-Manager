@@ -15,6 +15,7 @@ export function saveTasksToStorage(newTasks: Task) {
 }
 
 export function formatDateCustom(isoString: string): string {
+  if (!isoString) return "NA";
   const date = new Date(isoString);
 
   const months = [

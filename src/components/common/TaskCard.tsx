@@ -15,7 +15,7 @@ export const TaskCard: React.FC<Props> = ({
   onEdit,
   onDelete,
 }) => {
-  const isDone = task.status === "done";
+  const isDone = task.status === "Done";
 
   return (
     <div className="border rounded-lg p-4 flex flex-col gap-2 bg-card">
@@ -46,15 +46,12 @@ export const TaskCard: React.FC<Props> = ({
         >
           {isDone ? "Undo" : "Mark Done"}
         </Button>
-
-        {/* <RoleGuard roles={["admin"]}> */}
         <Button size="sm" variant="outline" onClick={onEdit}>
           Edit
         </Button>
         <Button size="sm" variant="destructive" onClick={onDelete}>
           Delete
         </Button>
-        {/* </RoleGuard> */}
       </div>
     </div>
   );

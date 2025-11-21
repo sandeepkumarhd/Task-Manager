@@ -9,12 +9,13 @@ export interface User {
 export type TaskStatus = "Pending" | "Done";
 
 export interface Task {
-  id: string;
+  id?: string;
   title: string;
   description: string;
-  status: TaskStatus;
+  status?: TaskStatus;
   createdAt?: string;
   updatedAt?: string;
   createdBy?: string;
   createdOn?: string;
+  userId?:string
 }

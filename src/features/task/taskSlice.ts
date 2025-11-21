@@ -1,12 +1,13 @@
+import type { TaskStatus } from "@/types/types";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 export interface Task {
-  id: string;
+  id: string|undefined;
   title: string;
   description: string;
   userId: string;
   createdOn: string;
   createdBy: string;
-  status: string;
+  status: TaskStatus;
 }
 export const LOCAL_KEY = "tasks";
 interface TaskState {

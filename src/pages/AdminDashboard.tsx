@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
-import TableList from "@/components/ui/data-table";
+import { TableList } from "@/components/ui/data-table";
 import { type RootState } from "@/app/stote";
 import { formatDateCustom } from "@/lib/helperFucntion";
 import { CheckCheckIcon } from "lucide-react";
@@ -26,6 +26,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useSearchParams } from "react-router";
+import type { Task } from "@/types/types";
+import type { Row } from "@tanstack/react-table";
 const AdminDashboard = () => {
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -35,9 +37,12 @@ const AdminDashboard = () => {
   const defaultSort = searchParams.get("sort") || "latest";
   const [selectedStatus, setSelectedStatus] = useState(defaultStatus);
   const [selectedSort, setSelectedSort] = useState(defaultSort);
-  const markAsDone = (taskId: string) => {
-    dispatch(updateTaskStatus({ taskId: taskId }));
-  };
+  const markAsDone = useCallback(
+    (taskId: string) => {
+      dispatch(updateTaskStatus({ taskId }));
+    },
+    [dispatch]
+  );
   useEffect(() => {
     const params = new URLSearchParams();
     params.set("status", selectedStatus);
@@ -49,7 +54,7 @@ const AdminDashboard = () => {
       {
         accessorKey: "SrNo",
         header: "Sr.No.",
-        cell: ({ row }: any) => row.index + 1,
+        cell: ({ row }: { row: Row<Task> }) => row.index + 1,
       },
 
       { accessorKey: "title", header: "Title" },
@@ -57,7 +62,7 @@ const AdminDashboard = () => {
       {
         accessorKey: "description",
         header: "Description",
-        cell: ({ row }: any) => {
+        cell: ({ row }: { row: Row<Task> }) => {
           return (
             <div className="w-[170px]" title={row.original.description}>
               {row.original?.description?.slice(0, 80)}
@@ -68,10 +73,10 @@ const AdminDashboard = () => {
       {
         accessorKey: "createdOn",
         header: "Created On",
-        cell: ({ row }: any) => {
+        cell: ({ row }: { row: Row<Task> }) => {
           return (
             <div className="w-[170px]">
-              {formatDateCustom(row?.original?.createdOn)}
+              {formatDateCustom(row?.original?.createdOn || "")}
             </div>
           );
         },
@@ -79,21 +84,21 @@ const AdminDashboard = () => {
       {
         accessorKey: "createdBy",
         header: "Created By",
-        cell: ({ row }: any) => {
+        cell: ({ row }: { row: Row<Task> }) => {
           return <div className="w-[170px]">{row?.original?.createdBy}</div>;
         },
       },
       {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }: any) => {
+        cell: ({ row }: { row: Row<Task> }) => {
           return <Badge>{row?.original?.status}</Badge>;
         },
       },
       {
         accessorKey: "action",
         header: "Action",
-        cell: ({ row }: any) => {
+        cell: ({ row }: { row: Row<Task> }) => {
           const task = row.original;
           return (
             <div className="flex gap-2">
@@ -122,7 +127,7 @@ const AdminDashboard = () => {
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => {
-                        markAsDone(task.id);
+                        markAsDone(task.id as string);
                       }}
                     >
                       Mark Done
@@ -135,7 +140,7 @@ const AdminDashboard = () => {
         },
       },
     ],
-    []
+    [markAsDone]
   );
   const filteredTask = useMemo(() => {
     let result = tasks;
@@ -163,45 +168,42 @@ const AdminDashboard = () => {
       <div className="flex justify-between mb-4">
         <h1 className="text-xl font-semibold">Admin Dashboard</h1>
       </div>
-      <TableList
-        rightElements={
-          <div className="flex justify-between gap-3">
-            <div className="w-40">
-              <Select
-                value={selectedStatus}
-                onValueChange={(value) => setSelectedStatus(value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Status" />
-                </SelectTrigger>
+      <div>
+        <div className="flex justify-between gap-3">
+          <div className="w-40">
+            <Select
+              value={selectedStatus}
+              onValueChange={(value) => setSelectedStatus(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select Status" />
+              </SelectTrigger>
 
-                <SelectContent>
-                  <SelectItem value="All">All</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
-                  <SelectItem value="Done">Completed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="w-40">
-              <Select
-                value={selectedSort}
-                onValueChange={(value) => setSelectedSort(value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Sorting" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  <SelectItem value="latest">Sort By Latest</SelectItem>
-                  <SelectItem value="oldest">Sort By Oldest</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+              <SelectContent>
+                <SelectItem value="All">All</SelectItem>
+                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="Done">Completed</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        }
-        columns={columns}
-        data={filteredTask}
-      />
+          <div className="w-40">
+            <Select
+              value={selectedSort}
+              onValueChange={(value) => setSelectedSort(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select Sorting" />
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value="latest">Sort By Latest</SelectItem>
+                <SelectItem value="oldest">Sort By Oldest</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+      <TableList columns={columns} data={filteredTask} />
     </div>
   );
 };

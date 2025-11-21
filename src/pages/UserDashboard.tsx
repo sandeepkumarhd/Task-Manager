@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import AddEditTaskDialog from "@/components/common/AddEditTaskDialoge";
 import { Button } from "@/components/ui/button";
-import TableList from "@/components/ui/data-table";
+import { TableList } from "@/components/ui/data-table";
 import {
   Select,
   SelectTrigger,
@@ -32,6 +32,16 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 import { useNavigate, useSearchParams } from "react-router";
+import type { Row } from "@tanstack/react-table";
+import type { Task } from "@/types/types";
+interface TaskData {
+  title: string;
+  description: string;
+  status: "Pending" | "Done";
+  createdOn: string;
+  createdBy: string;
+  userId: string;
+}
 
 const UserDashboard = () => {
   const dispatch = useDispatch();
@@ -41,33 +51,39 @@ const UserDashboard = () => {
   const tasks = useSelector((state: RootState) => state.tasks.tasks);
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<"add" | "edit">("add");
-  const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const defaultStatus = searchParams.get("status") || "All";
   const defaultSort = searchParams.get("sort") || "latest";
   const [selectedStatus, setSelectedStatus] = useState(defaultStatus);
   const [selectedSort, setSelectedSort] = useState(defaultSort);
-  const handleSubmit = (data: any) => {
+  const handleSubmit = (data: TaskData) => {
+    console.log(data, "data");
     if (mode === "add") {
       dispatch(addTask(data));
     } else if (mode === "edit" && selectedTask) {
       dispatch(editTask({ ...data, id: selectedTask.id }));
     }
   };
+  console.log(selectedTask, "selectedTask");
   useEffect(() => {
     const params = new URLSearchParams();
     params.set("status", selectedStatus);
     params.set("sort", selectedSort);
     setSearchParams(params);
   }, [selectedStatus, selectedSort, setSearchParams]);
-  const MarkAsDone = (taskId: string) => {
-    dispatch(updateTaskStatus({ taskId: taskId }));
-  };
+  const MarkAsDone = useCallback(
+    (taskId: string) => {
+      dispatch(updateTaskStatus({ taskId }));
+    },
+    [dispatch]
+  );
+
   const columns = useMemo(
     () => [
       {
         accessorKey: "SrNo",
         header: "Sr.No.",
-        cell: ({ row }: any) => row.index + 1,
+        cell: ({ row }: { row: Row<Task> }) => row.index + 1,
       },
 
       { accessorKey: "title", header: "Title" },
@@ -75,7 +91,7 @@ const UserDashboard = () => {
       {
         accessorKey: "description",
         header: "Description",
-        cell: ({ row }: any) => {
+        cell: ({ row }: { row: Row<Task> }) => {
           return (
             <div className="w-[170px]" title={row.original.description}>
               {row.original?.description?.slice(0, 80)}
@@ -86,10 +102,10 @@ const UserDashboard = () => {
       {
         accessorKey: "createdOn",
         header: "Created On",
-        cell: ({ row }: any) => {
+        cell: ({ row }: { row: Row<Task> }) => {
           return (
             <div className="w-[170px]">
-              {formatDateCustom(row?.original?.createdOn)}
+              {formatDateCustom(row?.original?.createdOn || "")}
             </div>
           );
         },
@@ -97,14 +113,14 @@ const UserDashboard = () => {
       {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }: any) => {
+        cell: ({ row }: { row: Row<Task> }) => {
           return <div className="w-[170px]">{row?.original?.status}</div>;
         },
       },
       {
         accessorKey: "action",
         header: "Action",
-        cell: ({ row }: any) => {
+        cell: ({ row }: { row: Row<Task> }) => {
           const task = row.original;
 
           return (
@@ -159,7 +175,7 @@ const UserDashboard = () => {
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => {
-                        MarkAsDone(task.id);
+                        MarkAsDone(task.id as string);
                       }}
                     >
                       Mark Done
@@ -190,7 +206,7 @@ const UserDashboard = () => {
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
-                      onClick={() => dispatch(deleteTask(task.id))}
+                      onClick={() => dispatch(deleteTask(task.id as string))}
                     >
                       Delete
                     </AlertDialogAction>
@@ -202,7 +218,7 @@ const UserDashboard = () => {
         },
       },
     ],
-    []
+    [dispatch, navigate, MarkAsDone]
   );
   const filteredTask = useMemo(() => {
     let result = tasks;
@@ -242,48 +258,46 @@ const UserDashboard = () => {
           Add Task
         </Button>
       </div>
-      <TableList
-        columns={columns}
-        data={filteredTask}
-        rightElements={
-          <div className="flex justify-between gap-3">
-            <div className="w-40">
-              <Select
-                value={selectedStatus}
-                onValueChange={(value) => setSelectedStatus(value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="All">All</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
-                  <SelectItem value="Done">Completed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="w-40">
-              <Select
-                value={selectedSort}
-                onValueChange={(value) => setSelectedSort(value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Sorting" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="latest">Sort By Latest</SelectItem>
-                  <SelectItem value="oldest">Sort By Oldest</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+      <div>
+        {" "}
+        <div className="flex justify-between gap-3">
+          <div className="w-40">
+            <Select
+              value={selectedStatus}
+              onValueChange={(value) => setSelectedStatus(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All</SelectItem>
+                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="Done">Completed</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        }
-      />
+          <div className="w-40">
+            <Select
+              value={selectedSort}
+              onValueChange={(value) => setSelectedSort(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select Sorting" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="latest">Sort By Latest</SelectItem>
+                <SelectItem value="oldest">Sort By Oldest</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+      <TableList columns={columns} data={filteredTask} />
       <AddEditTaskDialog
         open={open}
         onOpenChange={setOpen}
         mode={mode}
-        defaultValues={selectedTask || undefined}
+        defaultValues={selectedTask}
         onSubmit={handleSubmit}
         createdBy={{ name: user.user?.name || "", id: user.user?.id || "" }}
       />
