@@ -1,7 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
 import TableList from "@/components/ui/data-table";
 import { type RootState } from "@/app/stote";
 import { formatDateCustom } from "@/lib/helperFucntion";

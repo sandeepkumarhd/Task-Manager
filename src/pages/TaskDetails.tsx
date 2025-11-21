@@ -1,6 +1,6 @@
 import { useAppSelector } from "@/app/hooks";
 import type { RootState } from "@/app/stote";
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
