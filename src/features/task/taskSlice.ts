@@ -1,18 +1,18 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-
 export interface Task {
   id: string;
   title: string;
   description: string;
+  userId: string;
+  createdOn: string;
+  createdBy: string;
+  status: string;
 }
-
 export const LOCAL_KEY = "tasks";
-
 interface TaskState {
   tasks: Task[];
 }
 
-// Load from localStorage
 const loadTasks = (): Task[] => {
   try {
     const saved = localStorage.getItem(LOCAL_KEY);
@@ -26,7 +26,6 @@ const initialState: TaskState = {
   tasks: loadTasks(),
 };
 
-// Save to localStorage
 const saveTasks = (tasks: Task[]) => {
   localStorage.setItem(LOCAL_KEY, JSON.stringify(tasks));
 };
@@ -43,6 +42,20 @@ export const taskSlice = createSlice({
       state.tasks.push(newTasks);
       saveTasks(state.tasks);
     },
+    updateTaskStatus: (state, action: PayloadAction<{ taskId: string }>) => {
+      const { taskId } = action.payload;
+      state.tasks = state.tasks.map((task) =>
+        task.id === taskId
+          ? {
+              ...task,
+              status: "Done",
+              updatedOn: new Date().toISOString(),
+            }
+          : task
+      );
+      saveTasks(state.tasks);
+    },
+
     editTask: (state, action: PayloadAction<Task>) => {
       const index = state.tasks.findIndex((t) => t.id === action.payload.id);
       if (index !== -1) {
@@ -61,8 +74,12 @@ export const taskSlice = createSlice({
   },
 });
 
-
-export const { addTask, editTask, deleteTask, clearAllTasks } =
-  taskSlice.actions;
+export const {
+  addTask,
+  editTask,
+  deleteTask,
+  clearAllTasks,
+  updateTaskStatus,
+} = taskSlice.actions;
 
 export default taskSlice.reducer;

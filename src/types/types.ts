@@ -6,14 +6,15 @@ export interface User {
   role: Role;
 }
 
-export type TaskStatus = "pending" | "done";
+export type TaskStatus = "Pending" | "Done" | "";
 
 export interface Task {
   id: string;
   title: string;
   description: string;
   status: TaskStatus;
-  createdAt: string; // ISO date
-  updatedAt: string;
-  createdBy: string; // user id or email
+  createdAt?: string;
+  updatedAt?: string;
+  createdBy: string;
+  createdOn: string;
 }

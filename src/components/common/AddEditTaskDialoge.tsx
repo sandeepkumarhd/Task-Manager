@@ -9,10 +9,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-
 interface Task {
   title: string;
   description: string;
+  status: string;
+  createdOn: any;
+  createdBy: any;
+  userId: string;
+}
+interface CreatedBy {
+  name: string;
+  id: string;
 }
 
 interface AddEditTaskDialogProps {
@@ -21,7 +28,7 @@ interface AddEditTaskDialogProps {
   mode?: "add" | "edit";
   defaultValues?: Task;
   onSubmit: (data: Task) => void;
-  createdBy: string | undefined;
+  createdBy: CreatedBy;
 }
 
 const AddEditTaskDialog: React.FC<AddEditTaskDialogProps> = ({
@@ -30,43 +37,58 @@ const AddEditTaskDialog: React.FC<AddEditTaskDialogProps> = ({
   mode = "add",
   defaultValues,
   onSubmit,
-  createdBy = "",
+  createdBy,
 }) => {
-    console.log(createdBy,"createdBy")
   const [task, setTask] = useState<Task>({
     title: "",
     description: "",
     status: "",
     createdOn: "",
     createdBy: "",
+    userId: "",
   });
 
-  // Prefill values when editing
   useEffect(() => {
     if (mode === "edit" && defaultValues) {
       setTask(defaultValues);
     }
   }, [mode, defaultValues]);
-
+  const resetTask = () => {
+    setTask({
+      title: "",
+      description: "",
+      status: "",
+      createdOn: "",
+      userId: "",
+      createdBy: "",
+    });
+  };
   const handleSubmit = () => {
     onSubmit({
       ...task,
       status: "Pending",
-      createdOn: new Date(),
-      createdBy: createdBy,
+      createdOn: new Date().toISOString(),
+      createdBy: createdBy.name,
+      userId: createdBy.id,
     });
     onOpenChange(false);
+    resetTask();
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={() => {
+        onOpenChange(false);
+        resetTask();
+      }}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
             {mode === "add" ? "Add New Task" : "Edit Task"}
           </DialogTitle>
         </DialogHeader>
-
         <div className="space-y-4 mt-4">
           <div>
             <label className="text-sm font-medium">Task Title</label>
@@ -76,7 +98,6 @@ const AddEditTaskDialog: React.FC<AddEditTaskDialogProps> = ({
               onChange={(e) => setTask({ ...task, title: e.target.value })}
             />
           </div>
-
           <div>
             <label className="text-sm font-medium">Description</label>
             <Textarea
@@ -88,12 +109,20 @@ const AddEditTaskDialog: React.FC<AddEditTaskDialogProps> = ({
             />
           </div>
         </div>
-
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="outline"
+            onClick={() => {
+              onOpenChange(false);
+              resetTask();
+            }}
+          >
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>
+          <Button
+            disabled={!task.description.trim() || !task.title.trim()}
+            onClick={handleSubmit}
+          >
             {mode === "add" ? "Add Task" : "Update Task"}
           </Button>
         </DialogFooter>

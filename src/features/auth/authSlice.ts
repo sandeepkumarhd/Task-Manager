@@ -3,6 +3,7 @@ import {
   createSlice,
   type PayloadAction,
 } from "@reduxjs/toolkit";
+import Cookies from "js-cookie";
 
 export type UserRole = "user" | "admin";
 
@@ -86,12 +87,16 @@ export const initAuthFromStorage = createAsyncThunk<
   { rejectValue: string }
 >("auth/initAuthFromStorage", async (_, { rejectWithValue }) => {
   try {
-    const raw = localStorage.getItem("auth");
-    if (!raw) return { user: null, token: null };
-    const parsed = JSON.parse(raw);
+    const rawUser = Cookies.get("user");
+    const rawToken = Cookies.get("token");
+
+    if (!rawUser || !rawToken) {
+      return { user: null, token: null };
+    }
+
     return {
-      user: parsed.user ?? null,
-      token: parsed.token ?? null,
+      user: JSON.parse(rawUser),
+      token: rawToken,
     };
   } catch {
     return rejectWithValue("Failed to load saved auth");
@@ -105,15 +110,15 @@ const authSlice = createSlice({
     logout(state) {
       state.user = null;
       state.token = null;
-      localStorage.removeItem("auth");
+      Cookies.remove("user");
+      Cookies.remove("token");
     },
+
     setUser(state, action: PayloadAction<AuthUser | null>) {
       state.user = action.payload;
       if (state.user && state.token) {
-        localStorage.setItem(
-          "auth",
-          JSON.stringify({ user: state.user, token: state.token })
-        );
+        Cookies.set("user", JSON.stringify(state.user), { expires: 7 });
+        Cookies.set("token", state.token, { expires: 7 });
       }
     },
   },
@@ -139,14 +144,8 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload.user;
         state.token = action.payload.token;
-
-        localStorage.setItem(
-          "auth",
-          JSON.stringify({
-            user: state.user,
-            token: state.token,
-          })
-        );
+        Cookies.set("user", JSON.stringify(state.user), { expires: 7 });
+        Cookies.set("token", state.token, { expires: 7 });
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
