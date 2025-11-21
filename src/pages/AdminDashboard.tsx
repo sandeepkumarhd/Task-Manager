@@ -28,10 +28,11 @@ import {
 import { useSearchParams } from "react-router";
 import type { Task } from "@/types/types";
 import type { Row } from "@tanstack/react-table";
+import { Input } from "@/components/ui/input";
 const AdminDashboard = () => {
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
-
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const tasks = useSelector((state: RootState) => state.tasks.tasks);
   const defaultStatus = searchParams.get("status") || "All";
   const defaultSort = searchParams.get("sort") || "latest";
@@ -148,6 +149,14 @@ const AdminDashboard = () => {
     if (selectedStatus !== "All") {
       result = result.filter((ele) => ele.status === selectedStatus);
     }
+    if (searchQuery.trim() !== "") {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (ele) =>
+          ele.title.toLowerCase().includes(query) ||
+          ele.description.toLowerCase().includes(query)
+      );
+    }
     if (selectedSort === "latest") {
       result = [...result].sort(
         (a, b) =>
@@ -161,14 +170,14 @@ const AdminDashboard = () => {
     }
 
     return result;
-  }, [tasks, selectedStatus, selectedSort]);
+  }, [tasks, selectedStatus, selectedSort, searchQuery]);
 
   return (
     <div className="">
       <div className="flex justify-between mb-4">
         <h1 className="text-xl font-semibold">Admin Dashboard</h1>
       </div>
-      <div>
+      <div className="flex justify-between">
         <div className="flex justify-between gap-3">
           <div className="w-40">
             <Select
@@ -202,8 +211,16 @@ const AdminDashboard = () => {
             </Select>
           </div>
         </div>
+        <div className="w-[40%]">
+          <Input
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search....."
+          />
+        </div>
       </div>
-      <TableList columns={columns} data={filteredTask} />
+      <div className="mt-4">
+        <TableList columns={columns} data={filteredTask} />
+      </div>
     </div>
   );
 };

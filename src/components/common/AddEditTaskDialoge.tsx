@@ -40,18 +40,13 @@ const AddEditTaskDialog: React.FC<AddEditTaskDialogProps> = ({
   onSubmit,
   createdBy,
 }) => {
-  const [task, setTask] = useState<Task>(() => {
-    if (mode === "edit" && defaultValues) {
-      return { ...defaultValues };
-    }
-    return {
-      title: "",
-      description: "",
-      status: "Pending",
-      createdOn: new Date().toISOString(),
-      createdBy: "",
-      userId: "",
-    };
+  const [task, setTask] = useState<Task>({
+    title: "",
+    description: "",
+    status: "Pending",
+    createdOn: new Date().toISOString(),
+    createdBy: "",
+    userId: "",
   });
 
   useEffect(() => {
@@ -86,11 +81,14 @@ const AddEditTaskDialog: React.FC<AddEditTaskDialogProps> = ({
     <Dialog
       open={open}
       onOpenChange={() => {
-        onOpenChange(false);
         resetTask();
+        onOpenChange(false);
       }}
     >
-      <DialogContent>
+      <DialogContent
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>
             {mode === "add" ? "Add New Task" : "Edit Task"}
@@ -120,8 +118,8 @@ const AddEditTaskDialog: React.FC<AddEditTaskDialogProps> = ({
           <Button
             variant="outline"
             onClick={() => {
-              onOpenChange(false);
               resetTask();
+              onOpenChange(false);
             }}
           >
             Cancel

@@ -34,6 +34,7 @@ import {
 import { useNavigate, useSearchParams } from "react-router";
 import type { Row } from "@tanstack/react-table";
 import type { Task } from "@/types/types";
+import { Input } from "@/components/ui/input";
 interface TaskData {
   title: string;
   description: string;
@@ -50,6 +51,7 @@ const UserDashboard = () => {
   const user = useAppSelector((state: RootState) => state.auth);
   const tasks = useSelector((state: RootState) => state.tasks.tasks);
   const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [mode, setMode] = useState<"add" | "edit">("add");
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const defaultStatus = searchParams.get("status") || "All";
@@ -228,6 +230,14 @@ const UserDashboard = () => {
     if (selectedStatus !== "All") {
       result = result.filter((ele) => ele.status === selectedStatus);
     }
+    if (searchQuery.trim() !== "") {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(
+        (ele) =>
+          ele.title.toLowerCase().includes(query) ||
+          ele.description.toLowerCase().includes(query)
+      );
+    }
     if (selectedSort === "latest") {
       result = [...result].sort(
         (a, b) =>
@@ -241,7 +251,7 @@ const UserDashboard = () => {
     }
 
     return result;
-  }, [tasks, user.user?.id, selectedStatus, selectedSort]);
+  }, [tasks, user.user?.id, selectedStatus, selectedSort, searchQuery]);
 
   return (
     <div className="">
@@ -258,8 +268,7 @@ const UserDashboard = () => {
           Add Task
         </Button>
       </div>
-      <div>
-        {" "}
+      <div className="flex justify-between">
         <div className="flex justify-between gap-3">
           <div className="w-40">
             <Select
@@ -291,11 +300,22 @@ const UserDashboard = () => {
             </Select>
           </div>
         </div>
+        <div className="w-[40%]">
+          <Input
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search....."
+          />
+        </div>
       </div>
-      <TableList columns={columns} data={filteredTask} />
+      <div className="mt-4">
+        <TableList columns={columns} data={filteredTask} />
+      </div>
       <AddEditTaskDialog
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={() => {
+          setOpen(false);
+          setSelectedTask(null);
+        }}
         mode={mode}
         defaultValues={selectedTask}
         onSubmit={handleSubmit}

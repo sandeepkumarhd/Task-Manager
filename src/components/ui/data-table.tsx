@@ -46,9 +46,12 @@ export function TableList<T, TValue>({
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
+            <TableRow
+              className="bg-black hover:bg-black text-white"
+              key={headerGroup.id}
+            >
               {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
+                <TableHead className="text-white" key={header.id}>
                   {header.isPlaceholder
                     ? null
                     : flexRender(
