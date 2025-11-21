@@ -19,9 +19,8 @@ export const LoginPage = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { loading, error, user } = useAppSelector((s) => s.auth);
-  const [email, setEmail] = useState("admin@example.com");
-  const [password, setPassword] = useState("password");
-  console.log(loading);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   useEffect(() => {
     if (user) {
       if (user.role === "admin") {
@@ -32,7 +31,7 @@ export const LoginPage = () => {
     }
   }, [user, navigate]);
 
-  const handleSubmit = (e:any) => {
+  const handleSubmit = (e: any) => {
     e.preventDefault();
     dispatch(loginUser({ email, password }));
   };

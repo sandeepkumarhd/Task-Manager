@@ -47,7 +47,7 @@ const DUMMY_USERS: Array<{
   },
   {
     email: "user@example.com",
-    password: "user",
+    password: " ",
     user: {
       id: "2",
       name: "Regular User",
